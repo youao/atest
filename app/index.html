@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        html, body {
+            background: #eee;
+        }
+        #app {
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 0 10px;
+        }
+        .bottom {
+            width: 100%;
+            max-width: 600px;
+            position: fixed;
+            right: 0;
+            bottom: 20px;
+            left: 0;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            
+        </header>
+        <ul>
+            <li v-for="(item, index) in list" :key="index">
+                <p>
+                    {{item.content}}
+                </p>
+                <p><small>{{item.update_time}}</small></p>
+            </li>
+        </ul>
+        <div class="bottom">
+            <textarea v-model="content" cols="30" rows="4" style="display: block;width: 100%;"></textarea>
+            <button @click="sub" style="display: block;width: 100%;">提交</button>
+        </div>
+    </div>
+
+    <script src="/assets/dist/jquery/jquery-1.11.1.min.js"></script>
+    <script src="/assets/dist/vue/vue.min.js"></script>
+    <script>
+        $(function () {
+            new Vue({
+                el: '#app',
+                data() {
+                    return {
+                        list: [],
+                        page: 1,
+                        pageSize: 10,
+                        content: ''
+                    }
+                },
+                mounted() {
+                    this.getData();
+                },
+                methods: {
+                    getData(reload) {
+                        if (reload == 1) {
+                            this.list = [];
+                            this.page = 1;
+                            this.loading = false;
+                            this.finished = false;
+                        }
+                        if (this.loading || this.finished) return;
+                        $.ajax({
+                            url: '/api/index.php?mod=liuyanban&act=list',
+                            data: {
+                                page: this.page,
+                                pageSize: this.pageSize,
+                            },
+                            method: 'get',
+                            dataType: 'json',
+                            beforeSend() {
+                                this.loading = true;
+                            },
+                            complete() {
+                                this.loading = false;
+                            }
+                        }).done((res) => {
+                            if (res.status == 1) {
+                                var data = res.data || [];
+                                this.list.push.apply(this.list, data);
+                                if (this.pageSize == data.length) {
+                                    this.list.push.apply(this.list, data);
+                                    this.page++;
+                                } else {
+                                    this.finished = true;
+                                }
+                            } else {
+                                alert(res.message)
+                            }
+                        })
+                    },
+                    sub() {
+                        if (!this.content) return;
+                        $.ajax({
+                            url: '/api/index.php?mod=liuyanban&act=add',
+                            data: {
+                                content: this.content
+                            },
+                            method: 'post',
+                            dataType: 'json'
+                        }).done((res) => {
+                            console.log(res)
+                            if (res.status == 1) {
+                                this.getData(1);
+                                this.content = '';
+                            } else {
+                                alert(res.message)
+                            }
+                        })
+                    }
+                }
+            })
+        })
+    </script>
+</body>
+
+</html>
