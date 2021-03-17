@@ -31,14 +31,12 @@
 
 <body>
     <div id="app">
-        <header>
-            
+        <header style="text-align: right;">
+            <a href="/app/login.html">登录</a>
         </header>
         <ul>
             <li v-for="(item, index) in list" :key="index">
-                <p>
-                    {{item.content}}
-                </p>
+                <p>{{item.content}}</p>
                 <p><small>{{item.update_time}}</small></p>
             </li>
         </ul>

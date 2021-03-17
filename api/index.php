@@ -4,6 +4,8 @@ $username = "youao";
 $password = "123654";
 $dbname = "atest";
 
+$apikey = 'ATEST';
+
 $mod = $_GET['mod'];
 $act = $_GET['act'];
 

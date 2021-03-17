@@ -10,6 +10,8 @@ $conn = dbconn();
 $sql = "SELECT * FROM liuyanban LIMIT $from, $to";
 $result = $conn->query($sql);
 
+$conn->close();
+
 $data = array();
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -24,3 +26,4 @@ $result = array(
 );
 
 echo json_encode($result);
+
