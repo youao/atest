@@ -19,11 +19,4 @@ if ($result->num_rows > 0) {
     }
 }
 
-$result = array(
-    'status' => 1,
-    'data' => $data,
-    'message' => ''
-);
-
-echo json_encode($result);
-
+exitRequestJson('', 1, $data);

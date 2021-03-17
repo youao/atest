@@ -120,7 +120,6 @@
                         if (this.password != this.password_again) {
                             return alert('密码不一致');
                         }
-                        alert('aaa')
                         $.ajax({
                             url: '/api/index.php?mod=member&act=register',
                             data: {
@@ -131,8 +130,10 @@
                             method: 'post',
                             dataType: 'json'
                         }).done((res) => {
-                            console.log(res)
-                            // alert(res.message);
+                            alert(res.message);
+                            if (res.status == 1) {
+                                this.view = 'login';
+                            }
                         })
                     }
                 }
