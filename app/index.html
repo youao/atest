@@ -7,9 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        html, body {
+        html,
+        body {
             background: #eee;
         }
+
         #app {
             width: 100%;
             max-width: 600px;
@@ -17,6 +19,7 @@
             background: #fff;
             padding: 0 10px;
         }
+
         .bottom {
             width: 100%;
             max-width: 600px;
@@ -32,7 +35,8 @@
 <body>
     <div id="app">
         <header style="text-align: right;">
-            <a href="/app/login.html">登录</a>
+            <a v-if="mid" href="/app/member.html">{{nickname || '游客'}}</a>
+            <a v-else href="/app/login.html">登录</a>
         </header>
         <ul>
             <li v-for="(item, index) in list" :key="index">
@@ -47,7 +51,9 @@
     </div>
 
     <script src="/assets/dist/jquery/jquery-1.11.1.min.js"></script>
+    <script src="/assets/dist/jquery/jquery.cookie.js"></script>
     <script src="/assets/dist/vue/vue.min.js"></script>
+    <script src="/assets/js/common.js"></script>
     <script>
         $(function () {
             new Vue({
@@ -57,10 +63,17 @@
                         list: [],
                         page: 1,
                         pageSize: 10,
-                        content: ''
+                        content: '',
+                        mid: 0,
+                        nickname: ''
                     }
                 },
                 mounted() {
+                    var member = localStorage.getItem("MEMBER");
+                    if(member && member.id) {
+                        this.id = member.id;
+                        this.nickname = member.nickname;
+                    }
                     this.getData();
                 },
                 methods: {
@@ -72,21 +85,12 @@
                             this.finished = false;
                         }
                         if (this.loading || this.finished) return;
-                        $.ajax({
-                            url: '/api/index.php?mod=liuyanban&act=list',
-                            data: {
-                                page: this.page,
-                                pageSize: this.pageSize,
-                            },
-                            method: 'get',
-                            dataType: 'json',
-                            beforeSend() {
-                                this.loading = true;
-                            },
-                            complete() {
-                                this.loading = false;
-                            }
+                        this.loading = true;
+                        request.get('liuyanban/list', {
+                            page: this.page,
+                            pageSize: this.pageSize
                         }).done((res) => {
+                            this.loading = false;
                             if (res.status == 1) {
                                 var data = res.data || [];
                                 this.list.push.apply(this.list, data);
@@ -102,16 +106,14 @@
                         })
                     },
                     sub() {
+                        var token = $.cookie('TOKEN');
+                        if (!token) {
+                            return alert('请先登录');
+                        }
                         if (!this.content) return;
-                        $.ajax({
-                            url: '/api/index.php?mod=liuyanban&act=add',
-                            data: {
-                                content: this.content
-                            },
-                            method: 'post',
-                            dataType: 'json'
+                        request.post('liuyanban/add', {
+                            content: this.content
                         }).done((res) => {
-                            console.log(res)
                             if (res.status == 1) {
                                 this.getData(1);
                                 this.content = '';

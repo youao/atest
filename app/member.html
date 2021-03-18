@@ -28,6 +28,7 @@
     <script src="/assets/dist/jquery/jquery-1.11.1.min.js"></script>
     <script src="/assets/dist/jquery/jquery.cookie.js"></script>
     <script src="/assets/dist/vue/vue.min.js"></script>
+    <script src="/assets/js/common.js"></script>
     <script>
         $(function () {
             new Vue({
@@ -41,16 +42,8 @@
                     this.getData();
                 },
                 methods: {
-                    getData(reload) {
-                        var token = $.cookie('TOKEN');
-                        console.log(token);
-                        $.ajax({
-                            url: '/api/index.php?mod=member&act=index',
-                            dataType: 'json',
-                            headers: {
-                                'Authenticate': token
-                            }
-                        }).done((res) => {
+                    getData() {
+                        request.get('member/index').done((res) => {
                             console.log(res)
                         })
                     }                   

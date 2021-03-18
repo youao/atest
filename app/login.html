@@ -7,9 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        html, body {
+        html,
+        body {
             background: #eee;
         }
+
         #app {
             width: 100%;
             max-width: 600px;
@@ -17,6 +19,7 @@
             background: #fff;
             padding: 0 10px;
         }
+
         .bottom {
             width: 100%;
             max-width: 600px;
@@ -69,6 +72,7 @@
     <script src="/assets/dist/jquery/jquery-1.11.1.min.js"></script>
     <script src="/assets/dist/jquery/jquery.cookie.js"></script>
     <script src="/assets/dist/vue/vue.min.js"></script>
+    <script src="/assets/js/common.js"></script>
     <script>
         $(function () {
             new Vue({
@@ -84,44 +88,33 @@
                         send_text: '发送验证码'
                     }
                 },
-                mounted() {
-                    
-                },
                 methods: {
                     toLoginPwd() {
                         if (!this.mobile || !this.password) return;
                         this.dis_send = true;
-                        $.ajax({
-                            url: '/api/index.php?mod=member&act=login',
-                            data: {
-                                type: 'password',
-                                mobile: this.mobile,
-                                password: this.password
-                            },
-                            method: 'post',
-                            dataType: 'json'
+                        request.post('member/login', {
+                            type: 'password',
+                            mobile: this.mobile,
+                            password: this.password
                         }).done((res) => {
                             console.log(res)
                             if (res.status == 1) {
-                                $.cookie('TOKEN', res.data.token);
-                                $.cookie('MID', res.data.member.id);
+                                var r = res.data;
+                                $.cookie('TOKEN', r.token);
+                                $.cookie('MID', r.member.id);
+                                localStorage.setItem('MEMBER', r.member);
                                 window.location.href = '/app/member.html';
                             } else {
                                 alert(res.message);
                                 this.dis_send = false;
-                            }          
+                            }
                         })
                     },
                     sendSms() {
                         if (!this.mobile) return;
-                        $.ajax({
-                            url: '/api/index.php?mod=util&act=sms',
-                            data: {
-                                type: 'register',
-                                mobile: this.mobile
-                            },
-                            method: 'post',
-                            dataType: 'json'
+                        request.post('util/sms', {
+                            type: 'register',
+                            mobile: this.mobile
                         }).done((res) => {
                             console.log(res)
                             alert(res.message);
@@ -132,15 +125,10 @@
                         if (this.password != this.password_again) {
                             return alert('密码不一致');
                         }
-                        $.ajax({
-                            url: '/api/index.php?mod=member&act=register',
-                            data: {
-                                mobile: this.mobile,
-                                code: this.code,
-                                password: this.password
-                            },
-                            method: 'post',
-                            dataType: 'json'
+                        request.post('member/register', {
+                            mobile: this.mobile,
+                            code: this.code,
+                            password: this.password
                         }).done((res) => {
                             alert(res.message);
                             if (res.status == 1) {
