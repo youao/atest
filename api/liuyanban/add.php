@@ -1,4 +1,10 @@
 <?php
+
+$member = checkAuth();
+if (!$member) {
+    exitRequestJson('登录验证失败', 402);
+}
+
 $content = $_POST['content'];
 
 if (empty($content)) {

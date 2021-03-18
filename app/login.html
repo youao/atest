@@ -43,6 +43,7 @@
             <button @click="toLoginPwd">登录</button>
             <span @click="view = 'register'">去注册</span>
         </div>
+
         <div v-else-if="view == 'register'">
             <div>
                 <span>手机号</span>
@@ -50,7 +51,7 @@
             </div>
             <div>
                 <input type="text" v-model="code">
-                <button @click="sendSms">发送验证码</button>
+                <button @click="sendSms" :disabled="dis_send">{{send_text}}</button>
             </div>
             <div>
                 <span>密码</span>
@@ -66,6 +67,7 @@
     </div>
 
     <script src="/assets/dist/jquery/jquery-1.11.1.min.js"></script>
+    <script src="/assets/dist/jquery/jquery.cookie.js"></script>
     <script src="/assets/dist/vue/vue.min.js"></script>
     <script>
         $(function () {
@@ -78,6 +80,8 @@
                         password: '',
                         code: '',
                         password_again: '',
+                        dis_send: false,
+                        send_text: '发送验证码'
                     }
                 },
                 mounted() {
@@ -86,6 +90,7 @@
                 methods: {
                     toLoginPwd() {
                         if (!this.mobile || !this.password) return;
+                        this.dis_send = true;
                         $.ajax({
                             url: '/api/index.php?mod=member&act=login',
                             data: {
@@ -97,7 +102,14 @@
                             dataType: 'json'
                         }).done((res) => {
                             console.log(res)
-                            
+                            if (res.status == 1) {
+                                $.cookie('TOKEN', res.data.token);
+                                $.cookie('MID', res.data.member.id);
+                                window.location.href = '/app/member.html';
+                            } else {
+                                alert(res.message);
+                                this.dis_send = false;
+                            }          
                         })
                     },
                     sendSms() {

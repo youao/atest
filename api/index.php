@@ -25,28 +25,12 @@ function dbconn()
     return $conn;
 }
 
-// function encryptDecrypt($key, $string, $decrypt)
-// {
-
-//     if ($decrypt) {
-
-//         $decrypted = rtrim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, md5($key), base64_decode($string), MCRYPT_MODE_CBC, md5(md5($key))), "12");
-
-//         return $decrypted;
-//     } else {
-
-//         $encrypted = base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, md5($key), $string, MCRYPT_MODE_CBC, md5(md5($key))));
-
-//         return $encrypted;
-//     }
-// }
-
-function encryptDecrypt($key, $string, $decrypt)
+function encryptDecrypt($key, $data, $decrypt = 0)
 {
-
-    if ($decrypt) { } else {
-
-        return openssl_encrypt($string, 'DES-ECB', $key, 0);
+    if ($decrypt) {
+        return openssl_decrypt($data, 'DES-ECB', md5($key));
+    } else {
+        return openssl_encrypt($data, 'DES-ECB', md5($key));
     }
 }
 
@@ -60,4 +44,59 @@ function exitRequestJson($message, $status = 0, $data = null)
         $result['data'] = $data;
     }
     exit(json_encode($result));
+}
+
+function checkAuth($auth = null, $member = null)
+{
+    $auth = empty($auth) ? getAuthData() : $auth;
+    if (empty($auth['id'])) {
+        return false;
+    }
+    $member = empty($member) ? selectMemberById($auth['id']) : $member;
+    foreach ($auth as $key => $value) {
+        $v = $member[$key];
+        if ($v != $value) {
+            return false;
+        }
+    }
+    return $member;
+}
+
+function getAuthData()
+{
+    global $API_KEY;
+    $headers = getallheaders();
+    $auth = $headers['Authenticate'];
+    if (empty($auth)) {
+        exitRequestJson('请先登录', 401);
+    }
+
+    $str = encryptDecrypt($API_KEY, $auth, 1);
+
+    $dy = md5($API_KEY . '=');
+    $and = md5($API_KEY . '&');
+
+    $arr = explode($and, $str);
+    $data = array();
+    for ($i = 0; $i < count($arr); $i++) {
+        $o = explode($dy, $arr[$i]);
+        $data[$o[0]] = $o[1];
+    }
+    return $data;
+}
+
+function selectMemberById($id)
+{
+    $conn = dbconn();
+    $sql = "SELECT * FROM member WHERE id=$id LIMIT 1";
+    $result = $conn->query($sql);
+    $conn->close();
+
+    $data = array();
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
+        }
+    }
+    return $data[0];
 }

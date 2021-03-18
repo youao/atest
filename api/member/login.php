@@ -6,43 +6,37 @@ $password = $_POST['password'];
 
 if ($type == 'password') {
     if (empty($mobile) || empty($password)) {
-        $result = array(
-            'status' => 0,
-            'message' => '缺少参数'
-        );
-        exit(json_encode($result));
+        exitRequestJson('缺少参数');
     }
 
     if (strlen($mobile) != 11) {
-        $result = array(
-            'status' => 0,
-            'message' => '手机号格式错误'
-        );
-        exit(json_encode($result));
+        exitRequestJson('手机号格式错误');
     }
 
-    $member = selectMemberByMobile($mobile);
-    if (count($member) == 0) {
-        $result = array(
-            'status' => 401,
-            'message' => '该手机号未注册'
-        );
-        exit(json_encode($result));
+    $result = selectMemberByMobile($mobile);
+    if (count($result) == 0) {
+        exitRequestJson('该手机号未注册');
     }
 
-    $result = array(
-        'status' => 0,
-        'data' => $member,
-        'message' => '参数出错'
+    $member = $result[0];
+    $_time = date("Y-m-d H:i:s", time());
+
+    $result = updateLastLogTime($member['id'], $_time);
+    if (!$result) {
+        exitRequestJson('更新时间出错');
+    }
+
+    $token = createToken($member, $_time);
+
+    $data = array(
+        'token' => $token,
+        'member' => $member
     );
-    exit(json_encode($result));
+
+    exitRequestJson('登录成功', 1, $data);
 }
 
-$result = array(
-    'status' => 0,
-    'message' => '参数出错'
-);
-exit(json_encode($result));
+exitRequestJson('参数出错');
 
 function selectMemberByMobile($mobile)
 {
@@ -58,4 +52,22 @@ function selectMemberByMobile($mobile)
         }
     }
     return $data;
+}
+
+function updateLastLogTime($id, $time)
+{
+    $conn = dbconn();
+    $sql = "UPDATE member SET last_log_time='" . $time . "' WHERE id=" . $id;
+    $result = $conn->query($sql);
+    $conn->close();
+    return $result;
+}
+
+function createToken($member, $time)
+{
+    global $API_KEY;
+    $dy = md5($API_KEY . '=');
+    $and = md5($API_KEY . '&');
+    $str = 'id' . $dy . $member['id'] . $and . 'mobile' . $dy . $member['mobile'] . $and . 'pwd' . $dy . $member['pwd'] . $and . 'last_log_time' . $dy . $time;
+    return encryptDecrypt($API_KEY, $str, 0);
 }

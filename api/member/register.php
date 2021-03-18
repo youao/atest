@@ -5,19 +5,11 @@ $code = $_POST['code'];
 $password = $_POST['password'];
 
 if (empty($mobile) || empty($code) || empty($password)) {
-    $result = array(
-        'status' => 0,
-        'message' => '缺少参数'
-    );
-    exit(json_encode($result));
+    exitRequestJson('缺少参数');
 }
 
 if (strlen($mobile) != 11) {
-    $result = array(
-        'status' => 0,
-        'message' => '手机号格式错误'
-    );
-    exit(json_encode($result));
+    exitRequestJson('手机号格式错误');
 }
 
 $conn = dbconn();
@@ -44,7 +36,7 @@ if ($result === TRUE) {
 } else {
     $message = 'Error: ' . $sql . ' ' . $conn->error;
     $conn->close();
-    exitRequestJson($message, 1);
+    exitRequestJson($message);
 }
 
 function selectMemberByMobile($mobile)
@@ -65,7 +57,7 @@ function selectMemberByMobile($mobile)
 function selectCodeByMobile($mobile)
 {
     global $conn;
-    $sql = "SELECT code FROM sms WHERE mobile='" . $mobile . "' ORDER BY create_time DESC LIMIT 1";
+    $sql = "SELECT code FROM sms WHERE mobile='" . $mobile . "' and send_type='register' ORDER BY create_time DESC LIMIT 1";
     $result = $conn->query($sql);
 
     if ($result->num_rows == 0) {
@@ -82,7 +74,7 @@ function selectCodeByMobile($mobile)
 function createPassword($password)
 {
     global $API_KEY;
-    return encryptDecrypt($API_KEY, $password, 0);
+    return encryptDecrypt($API_KEY, $password);
 }
 
 function insertMember()
