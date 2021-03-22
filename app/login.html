@@ -100,9 +100,9 @@
                             console.log(res)
                             if (res.status == 1) {
                                 var r = res.data;
-                                $.cookie('TOKEN', r.token);
-                                $.cookie('MID', r.member.id);
-                                localStorage.setItem('MEMBER', r.member);
+                                $.cookie('TOKEN', r.token, { path: '/' });
+                                $.cookie('MID', r.member.id, { path: '/' });
+                                storage.set('MEMBER', r.member);
                                 window.location.href = '/app/member.html';
                             } else {
                                 alert(res.message);

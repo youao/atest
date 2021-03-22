@@ -35,7 +35,10 @@
 <body>
     <div id="app">
         <header style="text-align: right;">
-            <a v-if="mid" href="/app/member.html">{{nickname || '游客'}}</a>
+            <template v-if="mid">
+                <a href="/app/member.html">{{nickname || '游客'}}</a>
+                <span @click="logout">退出</span>
+            </template>
             <a v-else href="/app/login.html">登录</a>
         </header>
         <ul>
@@ -69,14 +72,19 @@
                     }
                 },
                 mounted() {
-                    var member = localStorage.getItem("MEMBER");
-                    if(member && member.id) {
-                        this.id = member.id;
-                        this.nickname = member.nickname;
-                    }
+                    this.setMember();
                     this.getData();
                 },
                 methods: {
+                    setMember() {
+                        var member = checkLogin();
+                        if (!member) {
+                            this.mid = 0;
+                            return;
+                        }
+                        this.mid = member.id;
+                        this.nickname = member.nickname;
+                    },
                     getData(reload) {
                         if (reload == 1) {
                             this.list = [];
@@ -121,6 +129,16 @@
                                 alert(res.message)
                             }
                         })
+                    },
+                    logout() {
+                        let s = confirm('确认退出？');
+                        if (!s) return;
+                        $.removeCookie('TOKEN');
+                        $.removeCookie('TOKEN');
+                        storage.remove('MEMBER');
+
+                        this.setMember();
+                        this.getData(1);
                     }
                 }
             })

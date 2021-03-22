@@ -12,7 +12,8 @@ if (empty($content)) {
 }
 
 $_time = date("Y-m-d H:i:s", time());
-$sql = "INSERT INTO liuyanban (content, create_time, update_time) VALUES ('" . $content . "', '" . $_time . "', '" . $_time . "')";
+$author_id = $member['id'];
+$sql = "INSERT INTO liuyanban (author_id, content, create_time, update_time) VALUES ($author_id, '" . $content . "', '" . $_time . "', '" . $_time . "')";
 
 $conn = dbconn();
 $result = $conn->query($sql);
